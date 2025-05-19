@@ -37,7 +37,7 @@ const checkout = async (page) => {
   await clickWithEvaluate(page, ".cart__checkout");
 };
 
-const fillBilling = async (page) => {
+const fillShippingData = async (page) => {
   await page.waitForSelector("#email", { visible: true });
 
   await page.type("#email", "zetbaur@gmail.com");
@@ -68,7 +68,6 @@ const fillBilling = async (page) => {
     }
   });
 
-  await page.waitForSelector('button[type="submit"]', { visible: true });
   await clickWithEvaluate(page, 'button[type="submit"]');
 
   await page.waitForFunction(() => {
@@ -79,14 +78,54 @@ const fillBilling = async (page) => {
   await clickWithEvaluate(page, 'button[type="submit"]');
 };
 
+const submitPayment = async (page) => {
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  let iframeCardNumber = await page.waitForSelector(
+    "iframe[title='Field container for: Card number']"
+  );
+  let innerPage = await iframeCardNumber.contentFrame();
+  await innerPage.type("input[id='number']", "4308963903784205");
+
+  //===========
+
+  let iframeCardExpiry = await page.waitForSelector(
+    "iframe[title='Field container for: Expiration date (MM / YY)']"
+  );
+
+  innerPage = await iframeCardExpiry.contentFrame();
+
+  if (innerPage) {
+    await innerPage.evaluate(() => {
+      const input = document.querySelector("input[id='expiry']");
+
+      if (input) {
+        input.value = "01/28";
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    });
+  } else {
+    console.error("no contentFrame");
+  }
+
+  //===========
+
+  let iframeVerification = await page.waitForSelector(
+    "iframe[title='Field container for: Security code']"
+  );
+  innerPage = await iframeVerification.contentFrame();
+  await innerPage.type("input[id='verification_value']", "799");
+
+  await page.click("button[type='submit']");
+};
+
 const run = async () => {
   const page = await getPage();
-
   await addToCart(page);
-
   await checkout(page);
-
-  await fillBilling(page);
+  await fillShippingData(page);
+  await submitPayment(page);
 };
 
 run();
