@@ -37,12 +37,56 @@ const checkout = async (page) => {
   await clickWithEvaluate(page, ".cart__checkout");
 };
 
+const fillBilling = async (page) => {
+  await page.waitForSelector("#email", { visible: true });
+
+  await page.type("#email", "zetbaur@gmail.com");
+  await page.type("#TextField0", "John");
+  await page.type("#TextField1", "Zheten");
+
+  await page.evaluate(() => {
+    const input = document.querySelector("#shipping-address1");
+
+    if (input) {
+      input.value = "1234 Elm Street";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  });
+
+  await page.type("#TextField4", "Los Angeles");
+  await page.select("#Select1", "CA");
+  await page.type("#TextField5", "90001");
+
+  await page.evaluate(() => {
+    const input = document.querySelector("input#TextField6");
+
+    if (input) {
+      input.value = "+77017129288";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  });
+
+  await page.waitForSelector('button[type="submit"]', { visible: true });
+  await clickWithEvaluate(page, 'button[type="submit"]');
+
+  await page.waitForFunction(() => {
+    const btn = document.querySelector('button[type="submit"]');
+    return btn && !btn.disabled;
+  });
+
+  await clickWithEvaluate(page, 'button[type="submit"]');
+};
+
 const run = async () => {
   const page = await getPage();
 
   await addToCart(page);
 
   await checkout(page);
+
+  await fillBilling(page);
 };
 
 run();
