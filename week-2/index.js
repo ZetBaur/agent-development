@@ -1,11 +1,15 @@
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
-puppeteer.use(StealthPlugin());
 const ac = require("@antiadmin/anticaptchaofficial");
 
+puppeteer.use(StealthPlugin());
+
 const URL = "https://google.com/recaptcha/api2/demo";
-const API_KEY = "800106fc72c54f9bfb69313e87dc78d2";
+// const API_KEY = "800106fc72c54f9bfb69313e87dc78d2";
+const API_KEY = "a725f7ff819271ff5cfa6bf229dbad75";
 const WEBSITE_KEY = "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-";
+
+ac.setAPIKey(API_KEY);
 
 const getPage = async () => {
   const browser = await puppeteer.launch({ headless: false });
@@ -14,28 +18,40 @@ const getPage = async () => {
 };
 
 const getToken = async () => {
-  const token = await ac.solveRecaptchaV2Proxyless(URL, WEBSITE_KEY);
-
-  console.log(token);
-
-  return token;
+  try {
+    const token = await ac.solveRecaptchaV2Proxyless(URL, WEBSITE_KEY);
+    console.log("reCAPTCHA Token:", token);
+    return token;
+  } catch (err) {
+    console.error("Ошибка при получении токена:", err);
+    throw err;
+  }
 };
 
 const solveRecaptchaAndSubmit = async (page) => {
   const token = await getToken();
 
+  // Ждём загрузки нужного элемента
+  await page.waitForSelector("textarea#g-recaptcha-response");
+
+  // Вставляем токен в textarea
   await page.evaluate((token) => {
-    document.querySelector("textarea[id='g-recaptcha-response']").innerHTML =
-      token;
+    document.querySelector("textarea#g-recaptcha-response").value = token;
   }, token);
 
+  // Подождать появления кнопки и нажать её
+  await page.waitForSelector("input[type='submit']");
   await page.click("input[type='submit']");
 };
 
 const run = async () => {
-  const page = await getPage();
-  await page.goto(URL);
-  solveRecaptchaAndSubmit(page);
+  try {
+    const page = await getPage();
+    await page.goto(URL, { waitUntil: "networkidle2" });
+    await solveRecaptchaAndSubmit(page);
+  } catch (err) {
+    console.error("Произошла ошибка в run():", err);
+  }
 };
 
 run();
