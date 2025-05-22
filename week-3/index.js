@@ -96,17 +96,13 @@ const addToCart = async (page) => {
 };
 
 const getShippingToken = async (page) => {
-  // Получаем cookie с текущей страницы
   const cookies = await page.cookies();
   const cookieHeader = cookies
     .map(({ name, value }) => `${name}=${value}`)
     .join("; ");
 
   const cartUrl = "https://www.stanley1913.com/cart.js";
-  const refererUrl =
-    "https://www.stanley1913.com/products/mothers-day-quencher-h2-0-flowstate-tumbler-40-oz?variant=53972924825960";
 
-  // Выполняем fetch-запрос на стороне Node.js, а не браузера
   const response = await fetch(cartUrl, {
     headers: {
       accept: "*/*",
@@ -118,7 +114,7 @@ const getShippingToken = async (page) => {
       "sec-fetch-mode": "cors",
       "sec-fetch-site": "same-origin",
       cookie: cookieHeader,
-      referer: refererUrl,
+      referer: productUrl,
       "Referrer-Policy": "strict-origin-when-cross-origin",
     },
     method: "GET",
