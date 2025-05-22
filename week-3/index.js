@@ -36,6 +36,29 @@ const addToCart = async (page) => {
 
   const cookieStr = cookies.map((c) => `${c.name}=${c.value}`).join("; ");
 
+  // const id = await page
+  //   .evaluate(() => document.querySelector("input[name='id']"))
+  //   .getAttribute("value");
+
+  // const sectionId =await page
+  //   .evaluate(() => document.querySelector("input[name='section-id']"))
+  //   .getAttribute("value");
+
+  // const productId =await page
+  //   .evaluate(() => document.querySelector("input[name='product-id']"))
+  //   .getAttribute("value");
+
+  const getInputValue = async (page, name) => {
+    return await page.evaluate((name) => {
+      const input = document.querySelector(`input[name="${name}"]`);
+      return input?.value || null;
+    }, name);
+  };
+
+  const id = await getInputValue(page, "id");
+  const sectionId = await getInputValue(page, "section-id");
+  const productId = await getInputValue(page, "product-id");
+
   const requestBody =
     "------WebKitFormBoundaryWJpbFg00ijsrLGxn\r\n" +
     'Content-Disposition: form-data; name="form_type"\r\n\r\n' +
@@ -45,16 +68,16 @@ const addToCart = async (page) => {
     "✓\r\n" +
     "------WebKitFormBoundaryWJpbFg00ijsrLGxn\r\n" +
     'Content-Disposition: form-data; name="id"\r\n\r\n' +
-    "53972924825960\r\n" +
+    `${id}\r\n` +
     "------WebKitFormBoundaryWJpbFg00ijsrLGxn\r\n" +
     'Content-Disposition: form-data; name="properties[Shipping]"\r\n\r\n' +
     "\r\n" +
     "------WebKitFormBoundaryWJpbFg00ijsrLGxn\r\n" +
     'Content-Disposition: form-data; name="product-id"\r\n\r\n' +
-    "14973183197544\r\n" +
+    `${productId}\r\n` +
     "------WebKitFormBoundaryWJpbFg00ijsrLGxn\r\n" +
     'Content-Disposition: form-data; name="section-id"\r\n\r\n' +
-    "template--24563549667688__4b86bc5c-f0d6-46d6-8684-1235f066332e\r\n" +
+    `${sectionId}\r\n` +
     "------WebKitFormBoundaryWJpbFg00ijsrLGxn\r\n" +
     'Content-Disposition: form-data; name="quantity"\r\n\r\n' +
     "1\r\n" +
