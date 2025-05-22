@@ -88,6 +88,7 @@ const submitPayment = async (page) => {
   await innerPage.type("input[id='number']", "4308963903784205");
 
   //===========
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   let iframeCardExpiry = await page.waitForSelector(
     "iframe[title='Field container for: Expiration date (MM / YY)']"
@@ -110,6 +111,7 @@ const submitPayment = async (page) => {
   }
 
   //===========
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   let iframeVerification = await page.waitForSelector(
     "iframe[title='Field container for: Security code']"
@@ -118,6 +120,13 @@ const submitPayment = async (page) => {
   await innerPage.type("input[id='verification_value']", "799");
 
   await page.click("button[type='submit']");
+
+  // await page.waitForFunction(() => {
+  //   const btn = document.querySelector('button[type="submit"]');
+  //   return btn && !btn.disabled;
+  // });
+
+  // await clickWithEvaluate(page, "button[type='submit']");
 };
 
 const run = async () => {
