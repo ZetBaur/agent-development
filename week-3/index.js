@@ -2,7 +2,7 @@ const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
 puppeteer.use(StealthPlugin());
 
-const productUrl =
+const PRODUCT_URL =
   "https://www.stanley1913.com/products/mothers-day-quencher-h2-0-flowstate-tumbler-40-oz?variant=53972924825960";
 
 const getPage = async () => {
@@ -12,41 +12,18 @@ const getPage = async () => {
   return page;
 };
 
-// const parseCookies = async (page) => {
-//   const cookies = await page.cookies();
-
-//   let cookieList = "";
-
-//   for (let i = 0; i < cookies.length; i++) {
-//     let cookie = cookies[i];
-//     let cookieString = cookie.name + "=" + cookie.value;
-
-//     if (i != cookies.length - 1) {
-//       cookieString = cookieString + "; ";
-//     }
-//     cookieList = cookieList + cookieString;
-//   }
-
-//   return cookieList;
-// };
-
 const parseCookies = async (page) => {
   const cookies = await page.cookies();
-
-  console.log("cookies", cookies);
-
-  return cookies;
+  const cookieStr = cookies
+    .map(({ name, value }) => `${name}=${value}`)
+    .join("; ");
+  return cookieStr;
 };
 
 const addToCart = async (page) => {
   await page.waitForSelector("button[name='add']");
 
-  const cookies = await parseCookies(page);
-  const cookieStr = cookies.map((c) => `${c.name}=${c.value}`).join("; ");
-
-  // const productId =await page
-  //   .evaluate(() => document.querySelector("input[name='product-id']"))
-  //   .getAttribute("value");
+  const cookieStr = await parseCookies(page);
 
   const getInputValue = async (page, name) => {
     return await page.evaluate((name) => {
@@ -112,26 +89,15 @@ const addToCart = async (page) => {
     },
     { cookieStr, requestBody }
   );
-
-  // console.log("Response:", result);
-
-  // await browser.close();
 };
 
 const getShippingToken = async (page) => {
-  const cookies = await parseCookies(page);
-
-  const cookieStr = cookies
-    .map(({ name, value }) => `${name}=${value}`)
-    .join("; ");
+  const cookieStr = await parseCookies(page);
 
   const cartUrl = "https://www.stanley1913.com/cart.js";
 
-  const productReferer =
-    "https://www.stanley1913.com/products/mothers-day-quencher-h2-0-flowstate-tumbler-40-oz";
-
   const { cartData, error } = await page.evaluate(
-    async ({ cookieStr, referer, cartUrl }) => {
+    async ({ cookieStr, PRODUCT_URL, cartUrl }) => {
       try {
         const response = await fetch(cartUrl, {
           method: "GET",
@@ -146,7 +112,7 @@ const getShippingToken = async (page) => {
             "sec-fetch-site": "same-origin",
             "x-requested-with": "XMLHttpRequest",
             cookie: cookieStr,
-            referer: referer,
+            referer: PRODUCT_URL,
           },
         });
 
@@ -156,7 +122,7 @@ const getShippingToken = async (page) => {
         return { error: err.message };
       }
     },
-    { cookieStr, referer: productReferer, cartUrl }
+    { cookieStr, PRODUCT_URL, cartUrl }
   );
 
   if (error) {
@@ -172,52 +138,15 @@ const getShippingToken = async (page) => {
   }
 
   const shippingUrl = `https://www.stanley1913.com/checkouts/cn/${token}/information`;
-  await page.goto(shippingUrl, { waitUntil: "networkidle2" });
+  await page.goto(shippingUrl, { waitUntil: "networkidle2", timeout: 60000 });
 };
-// const getShippingToken = async (page) => {
-//   const cookies = await page.cookies();
-//   const cookieHeader = cookies
-//     .map(({ name, value }) => `${name}=${value}`)
-//     .join("; ");
-
-//   const cartUrl = "https://www.stanley1913.com/cart.js";
-
-//   const response = await fetch(cartUrl, {
-//     headers: {
-//       accept: "*/*",
-//       "accept-language": "en-US,en;q=0.9",
-//       "sec-ch-ua": '"Not.A/Brand";v="99", "Chromium";v="136"',
-//       "sec-ch-ua-mobile": "?0",
-//       "sec-ch-ua-platform": '"macOS"',
-//       "sec-fetch-dest": "empty",
-//       "sec-fetch-mode": "cors",
-//       "sec-fetch-site": "same-origin",
-//       cookie: cookieHeader,
-//       referer: productUrl,
-//       "Referrer-Policy": "strict-origin-when-cross-origin",
-//     },
-//     method: "GET",
-//   });
-
-//   const cartData = await response.json();
-
-//   // console.log("Cart data:", cartData);
-//   // console.log("Token:", cartData?.token);
-
-//   const token = cartData?.token.split("?")[0];
-
-//   const shippingUrl = `https://www.stanley1913.com/checkouts/cn/${token}/information`;
-
-//   await page.goto(shippingUrl, { waitUntil: "networkidle2" });
-// };
 
 const run = async () => {
   const page = await getPage();
-  // await page.goto(productUrl, { waitUntil: "networkidle2" });
 
-  await page.goto(productUrl, {
-    waitUntil: "domcontentloaded", // менее требовательный вариант
-    timeout: 60000, // 60 секунд
+  await page.goto(PRODUCT_URL, {
+    waitUntil: "domcontentloaded",
+    timeout: 60000,
   });
   await addToCart(page);
   await getShippingToken(page);
