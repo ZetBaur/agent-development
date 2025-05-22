@@ -126,11 +126,13 @@ const getShippingToken = async (page) => {
 
   const cartData = await response.json();
 
-  console.log("Cart data:", cartData);
-  console.log("Token:", cartData?.token); // Убедись, что `token` действительно есть в ответе
+  // console.log("Cart data:", cartData);
+  // console.log("Token:", cartData?.token);
 
-  // Переходим на страницу оформления доставки
-  const shippingUrl = `https://www.stanley1913.com/checkouts/cn/${cartData?.token}/information`;
+  const token = cartData?.token.split("?")[0];
+
+  const shippingUrl = `https://www.stanley1913.com/checkouts/cn/${token}/information`;
+
   await page.goto(shippingUrl, { waitUntil: "networkidle2" });
 };
 
