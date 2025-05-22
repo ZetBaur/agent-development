@@ -6,9 +6,9 @@ const PRODUCT_URL =
   "https://www.stanley1913.com/products/mothers-day-quencher-h2-0-flowstate-tumbler-40-oz?variant=53972924825960";
 
 const getPage = async () => {
-  const browser = await puppeteer.launch({ headless: false, timeout: 0 }); // <- важно
+  const browser = await puppeteer.launch({ headless: false, timeout: 0 }); // <- important
   const page = await browser.newPage();
-  page.setDefaultNavigationTimeout(60000); // <- глобальный таймаут
+  page.setDefaultNavigationTimeout(60000);
   return page;
 };
 
@@ -22,7 +22,6 @@ const parseCookies = async (page) => {
 
 const addToCart = async (page) => {
   await page.waitForSelector("button[name='add']");
-
   const cookieStr = await parseCookies(page);
 
   const getInputValue = async (page, name) => {
@@ -93,7 +92,6 @@ const addToCart = async (page) => {
 
 const getShippingToken = async (page) => {
   const cookieStr = await parseCookies(page);
-
   const cartUrl = "https://www.stanley1913.com/cart.js";
 
   const { cartData, error } = await page.evaluate(
@@ -126,14 +124,14 @@ const getShippingToken = async (page) => {
   );
 
   if (error) {
-    console.error("Ошибка при получении cart.js:", error);
+    console.error("ERROR getting cart.js:", error);
     return;
   }
 
   const token = cartData?.token?.split("?")[0];
 
   if (!token) {
-    console.error("Токен не найден в cartData");
+    console.error("ТToken not found in cartData");
     return;
   }
 
