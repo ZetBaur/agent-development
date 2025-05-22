@@ -90,49 +90,48 @@ const addToCart = async (page) => {
     { cookieStr, requestBody }
   );
 
-  console.log("Response:", result);
+  // console.log("Response:", result);
 
   // await browser.close();
 };
 
 const getShippingToken = async (page) => {
+  // Получаем cookie с текущей страницы
   const cookies = await page.cookies();
+  const cookieHeader = cookies
+    .map(({ name, value }) => `${name}=${value}`)
+    .join("; ");
 
-  const response = await page.evaluate(async (cookies) => {
-    async function getResponse() {
-      let resp = await fetch("https://www.stanley1913.com/cart.js", {
-        headers: {
-          accept: "*/*",
-          "accept-language": "en-US,en;q=0.9",
-          priority: "u=1, i",
-          "sec-ch-ua": '"Not.A/Brand";v="99", "Chromium";v="136"',
-          "sec-ch-ua-mobile": "?0",
-          "sec-ch-ua-platform": '"macOS"',
-          "sec-fetch-dest": "empty",
-          "sec-fetch-mode": "cors",
-          "sec-fetch-site": "same-origin",
-          cookie: cookies,
-          Referer:
-            "https://www.stanley1913.com/products/mothers-day-quencher-h2-0-flowstate-tumbler-40-oz?variant=53972924825960",
-          "Referrer-Policy": "strict-origin-when-cross-origin",
-        },
-        body: null,
-        method: "GET",
-      });
+  const cartUrl = "https://www.stanley1913.com/cart.js";
+  const refererUrl =
+    "https://www.stanley1913.com/products/mothers-day-quencher-h2-0-flowstate-tumbler-40-oz?variant=53972924825960";
 
-      const res = await resp.json();
-      console.log("resdata", res.data);
-      return res;
-    }
+  // Выполняем fetch-запрос на стороне Node.js, а не браузера
+  const response = await fetch(cartUrl, {
+    headers: {
+      accept: "*/*",
+      "accept-language": "en-US,en;q=0.9",
+      "sec-ch-ua": '"Not.A/Brand";v="99", "Chromium";v="136"',
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": '"macOS"',
+      "sec-fetch-dest": "empty",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-origin",
+      cookie: cookieHeader,
+      referer: refererUrl,
+      "Referrer-Policy": "strict-origin-when-cross-origin",
+    },
+    method: "GET",
+  });
 
-    return await getResponse();
-  }, cookies);
+  const cartData = await response.json();
 
-  console.log("Token", response.token);
+  console.log("Cart data:", cartData);
+  console.log("Token:", cartData?.token); // Убедись, что `token` действительно есть в ответе
 
+  // Переходим на страницу оформления доставки
   const shippingUrl =
     "https://www.stanley1913.com/checkouts/cn/Z2NwLWFzaWEtc291dGhlYXN0MTowMUpWVlJLNkpFTUdTVlhLVFZDQVlGN1EyVA/information";
-
   await page.goto(shippingUrl, { waitUntil: "networkidle2" });
 };
 
@@ -140,7 +139,7 @@ const run = async () => {
   const page = await getPage();
   await page.goto(productUrl, { waitUntil: "networkidle2" });
   await addToCart(page);
-  // await getShippingToken(page);
+  await getShippingToken(page);
 };
 
 run();
