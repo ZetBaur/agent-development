@@ -130,8 +130,7 @@ const getShippingToken = async (page) => {
   console.log("Token:", cartData?.token); // Убедись, что `token` действительно есть в ответе
 
   // Переходим на страницу оформления доставки
-  const shippingUrl =
-    "https://www.stanley1913.com/checkouts/cn/Z2NwLWFzaWEtc291dGhlYXN0MTowMUpWVlJLNkpFTUdTVlhLVFZDQVlGN1EyVA/information";
+  const shippingUrl = `https://www.stanley1913.com/checkouts/cn/${cartData?.token}/information`;
   await page.goto(shippingUrl, { waitUntil: "networkidle2" });
 };
 
