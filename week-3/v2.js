@@ -18,19 +18,61 @@ const SHOPIFY_STORE_URL =
 const createCheckout = async () => {
   console.log("Начинаем создание корзины...");
 
+  const cartInput = {
+    lines: [
+      {
+        merchandiseId: "gid://shopify/ProductVariant/39681110278203",
+        quantity: 1,
+      },
+    ],
+    buyerIdentity: {
+      email: "johntestdoe@gmail.com",
+      phone: "+96597211016",
+    },
+    delivery: {
+      addresses: [
+        {
+          address: {
+            deliveryAddress: {
+              address1: "1601 JEROME AVENUE",
+              city: "ASTORIA",
+              countryCode: "US",
+              firstName: "Dum",
+              lastName: "Dumn",
+              zip: "97103",
+              phone: "+96566661235",
+            },
+          },
+        },
+      ],
+    },
+  };
+
   const query = `
     mutation {
-      cartCreate(input: { 
-        lines: [{ merchandiseId: "gid://shopify/ProductVariant/39681110278203", quantity: 1 }],
-        buyerIdentity: { email: "johntestdoe@gmail.com", phone: "+96597211016" },
+      cartCreate(input: {
+        lines: [{
+          merchandiseId: "${cartInput.lines[0].merchandiseId}",
+          quantity: ${cartInput.lines[0].quantity}
+        }],
+        buyerIdentity: {
+          email: "${cartInput.buyerIdentity.email}",
+          phone: "${cartInput.buyerIdentity.phone}"
+        },
         delivery: {
           addresses: [{
-            address:
-              { 
-                deliveryAddress: { address1: "1601 JEROME AVENUE", city: "ASTORIA", countryCode: US, firstName:"Dum", lastName: "Dumn", zip: "97103",phone:"+96566661235" }
+            address: {
+              deliveryAddress: {
+                address1: "${cartInput.delivery.addresses[0].address.deliveryAddress.address1}",
+                city: "${cartInput.delivery.addresses[0].address.deliveryAddress.city}",
+                countryCode: ${cartInput.delivery.addresses[0].address.deliveryAddress.countryCode},
+                firstName: "${cartInput.delivery.addresses[0].address.deliveryAddress.firstName}",
+                lastName: "${cartInput.delivery.addresses[0].address.deliveryAddress.lastName}",
+                zip: "${cartInput.delivery.addresses[0].address.deliveryAddress.zip}",
+                phone: "${cartInput.delivery.addresses[0].address.deliveryAddress.phone}"
               }
-          }
-          ]
+            }
+          }]
         }
       }) {
         cart {
@@ -42,7 +84,8 @@ const createCheckout = async () => {
           message
         }
       }
-    }`;
+    }
+  `;
 
   try {
     const response = await fetch(SHOPIFY_STORE_URL, {
