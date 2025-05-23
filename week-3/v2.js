@@ -4,7 +4,7 @@ import pStealth from "puppeteer-extra-plugin-stealth";
 
 puppeteer.use(pStealth());
 
-const STORE_FRONT_ACCESS_TOKEN = "2a1ffada6512bf238885987120eba877";
+const STORE_FRONT_ACCESS_TOKEN = "eecaa4fbf8df42ffe25fac400b1ce513";
 
 const SHOPIFY_STORE_URL =
   "https://www.stanley1913.com/api/unstable/graphql.json";
