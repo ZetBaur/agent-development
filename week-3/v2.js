@@ -9,6 +9,8 @@ const STORE_FRONT_ACCESS_TOKEN = "2a1ffada6512bf238885987120eba877";
 const SHOPIFY_STORE_URL =
   "https://www.stanley1913.com/api/unstable/graphql.json";
 
+export const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const createCheckout = async () => {
   const cartInput = {
     lines: [
@@ -123,10 +125,10 @@ const openCheckoutInBrowser = async (checkoutUrl) => {
 
     await page.click("button[type=submit]");
     await page.waitForNavigation();
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await wait(500);
     await page.click("button[type=submit]");
 
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await wait(2000);
 
     let iframeCardNumber = await page.waitForSelector(
       "iframe[title='Field container for: Card number']"
@@ -134,8 +136,7 @@ const openCheckoutInBrowser = async (checkoutUrl) => {
     let innerPage = await iframeCardNumber.contentFrame();
     await innerPage.type("input[id='number']", "4308963903784205");
 
-    //===========
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await wait(2000);
     let iframeCardExpiry = await page.waitForSelector(
       "iframe[title='Field container for: Expiration date (MM / YY)']"
     );
@@ -144,28 +145,22 @@ const openCheckoutInBrowser = async (checkoutUrl) => {
     if (innerPage) {
       await innerPage.evaluate(() => {
         const input = document.querySelector("input[id='expiry']");
-
         if (input) {
           input.value = "01/28";
           input.dispatchEvent(new Event("input", { bubbles: true }));
           input.dispatchEvent(new Event("change", { bubbles: true }));
         }
       });
-    } else {
-      console.error("no contentFrame");
     }
 
-    //===========
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
+    await wait(2000);
     let iframeVerification = await page.waitForSelector(
       "iframe[title='Field container for: Security code']"
     );
     innerPage = await iframeVerification.contentFrame();
     await innerPage.type("input[id='verification_value']", "799");
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
+    await wait(500);
     await page.click("button[type=submit]");
   } catch (error) {
     console.error("Error during Puppeteer interaction:", error);
@@ -218,7 +213,6 @@ const getProducts = async () => {
 
 const initiateCheckout = async () => {
   try {
-    // Сначала получим список товаров
     await getProducts();
 
     const checkout = await createCheckout();
