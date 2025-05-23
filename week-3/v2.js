@@ -10,8 +10,6 @@ const SHOPIFY_STORE_URL =
   "https://www.stanley1913.com/api/unstable/graphql.json";
 
 const createCheckout = async () => {
-  console.log("Начинаем создание корзины...");
-
   const cartInput = {
     lines: [
       {
@@ -20,8 +18,8 @@ const createCheckout = async () => {
       },
     ],
     buyerIdentity: {
-      email: "johntestdoe@gmail.com",
-      phone: "+96597211016",
+      email: "baurtest@gmail.com",
+      phone: "+77017129299",
     },
     delivery: {
       addresses: [
@@ -34,7 +32,7 @@ const createCheckout = async () => {
               firstName: "Dum",
               lastName: "Dumn",
               zip: "97103",
-              phone: "+96566661235",
+              phone: "+77017129299",
             },
           },
         },
@@ -92,17 +90,16 @@ const createCheckout = async () => {
     });
 
     const data = await response.json();
-    console.log("Получен ответ от сервера:", JSON.stringify(data, null, 2));
 
     if (data.data?.cartCreate?.cart) {
       console.log(
-        "Корзина успешно создана, URL:",
+        "Cart created successfully, URL:",
         data.data.cartCreate.cart.checkoutUrl
       );
       return data.data.cartCreate.cart;
     } else {
       console.error(
-        "Ошибка при создании корзины:",
+        "Error with creating cart:",
         data.data?.cartCreate?.userErrors
       );
       return null;
@@ -114,47 +111,60 @@ const createCheckout = async () => {
 };
 
 const openCheckoutInBrowser = async (checkoutUrl) => {
-  console.log("Начинаем открытие браузера...");
   const browser = await puppeteer.launch({
     headless: false,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
-  console.log("Браузер запущен");
+
   const page = await browser.newPage();
-  console.log("Новая страница создана");
 
   try {
-    console.log("Переходим по URL:", checkoutUrl);
     await page.goto(`${checkoutUrl}`, { waitUntil: "domcontentloaded" });
-    console.log("Страница загружена успешно");
 
-    //Skip to Payment page
     await page.click("button[type=submit]");
     await page.waitForNavigation();
-    // await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     await page.click("button[type=submit]");
 
-    //Card Details
-    let iframeCard = await page.waitForSelector(
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    let iframeCardNumber = await page.waitForSelector(
       "iframe[title='Field container for: Card number']"
     );
-    let cardName = await iframeCard.contentFrame();
-    await cardName.type("#number", "4485 4080 8415 0730");
-    console.log("Card Name inputted");
+    let innerPage = await iframeCardNumber.contentFrame();
+    await innerPage.type("input[id='number']", "4308963903784205");
 
-    iframeCard = await page.waitForSelector(
+    //===========
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    let iframeCardExpiry = await page.waitForSelector(
       "iframe[title='Field container for: Expiration date (MM / YY)']"
     );
-    let expirationDate = await iframeCard.contentFrame();
-    await expirationDate.type("#expiry", "08/26");
-    console.log("Card Expirty Date inputted");
+    innerPage = await iframeCardExpiry.contentFrame();
 
-    iframeCard = await page.waitForSelector(
+    if (innerPage) {
+      await innerPage.evaluate(() => {
+        const input = document.querySelector("input[id='expiry']");
+
+        if (input) {
+          input.value = "01/28";
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+          input.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      });
+    } else {
+      console.error("no contentFrame");
+    }
+
+    //===========
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    let iframeVerification = await page.waitForSelector(
       "iframe[title='Field container for: Security code']"
     );
-    let cvv = await iframeCard.contentFrame();
-    await cvv.type("#verification_value", "118");
-    console.log("Card CVV inputted");
+    innerPage = await iframeVerification.contentFrame();
+    await innerPage.type("input[id='verification_value']", "799");
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     await page.click("button[type=submit]");
   } catch (error) {
