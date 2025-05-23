@@ -1,9 +1,3 @@
-// Developed by @BlazarusTech
-
-// x-shopify-storefront-access-token:
-// 2a1ffada6512bf238885987120eba877
-// gid://shopify/ProductVariant/44559841656959
-
 import fetch from "node-fetch";
 import puppeteer from "puppeteer-extra";
 import pStealth from "puppeteer-extra-plugin-stealth";
